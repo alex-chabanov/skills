@@ -24,6 +24,19 @@ Recommendation shape: *"Define a port at the seam, implement an HTTP adapter for
 
 Third-party services (Stripe, Twilio, etc.) you don't control. The deepened module takes the external dependency as an injected port; tests provide a mock adapter.
 
+### Android / Kotlin mapping
+
+The same four categories, with Android dependencies slotted in:
+
+| Category | Android example | How it's tested across the seam |
+|---|---|---|
+| In-process | reducer, mapper, `Result`-returning use case, validation | call the deep interface directly — no adapter |
+| Local-substitutable | Room, DataStore | in-memory Room (`inMemoryDatabaseBuilder`), Robolectric — stand-in runs in the suite |
+| Remote but owned | your backend over Ktor/Retrofit | repository is the deep module; inject a data-source port, `MockEngine`/in-memory adapter in tests, HTTP in prod |
+| True external | Play Billing, FusedLocation, FCM, Maps SDK | inject a port at the seam; mock adapter in tests |
+
+In an MVI codebase the repository **interface** is usually the load-bearing seam: the ViewModel and the use cases are the deep modules behind it, Koin binds the real adapter in production, and a fake binds in tests. A DAO or `HttpClient` exposed directly to a ViewModel is the shallow shape to deepen — pull it behind a repository so the logic gets locality and the seam gets two adapters (real + fake).
+
 ## Seam discipline
 
 - **One adapter means a hypothetical seam. Two adapters means a real one.** Don't introduce a port unless at least two adapters are justified (typically production + test). A single-adapter seam is just indirection.

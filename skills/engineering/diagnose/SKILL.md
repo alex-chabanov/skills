@@ -30,6 +30,19 @@ Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give
 
 Build the right feedback loop, and the bug is 90% fixed.
 
+### Android / Kotlin loops
+
+In rough order of speed — prefer the fastest seam that reaches the bug:
+
+1. **JVM unit test** — `./gradlew :module:testDebugUnitTest --tests "*.NoteListViewModelTest"`. Fastest; drive the ViewModel through `state`/`events` with a fake repo.
+2. **Robolectric test** — when the bug needs framework classes (`SavedStateHandle`, `Context`, resources) but not a device. Still runs on the JVM.
+3. **Compose UI test** — `ComposeTestRule` for recomposition, state-restoration, and click-path bugs. The robot pattern keeps a multi-step repro readable.
+4. **Instrumented test** — `./gradlew :app:connectedDebugAndroidTest` when the bug only shows on a real device/emulator (DB migrations, permissions, WorkManager).
+5. **`adb logcat` with a tag filter** — `adb logcat -s YourTag:* AndroidRuntime:E` to capture a crash stack or your own breadcrumbs while reproducing by hand.
+6. **`adb` to drive the repro** — `adb shell am start`/`am broadcast`/`input` to launch a screen or fire an intent without tapping, then assert on logcat. The Android `am instrument` analogue of a curl loop.
+7. **Process-death repro** — `adb shell am kill <pkg>` (or "Don't keep activities") to force the `SavedStateHandle` restore path that's hard to hit by hand.
+8. **MockEngine / MockWebServer replay** — feed a captured bad response through the Ktor stack to repro a parsing/mapping bug deterministically, no network.
+
 ### Iterate on the loop itself
 
 Treat the loop as a product. Once you have _a_ loop, ask:
@@ -87,6 +100,8 @@ Tool preference:
 **Tag every debug log** with a unique prefix, e.g. `[DEBUG-a4f2]`. Cleanup at the end becomes a single grep. Untagged logs survive; tagged logs die.
 
 **Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first, fix second.
+
+**Android specifics.** Tag debug logs through one `Timber.tag("DEBUG-a4f2")` so the Phase 6 cleanup is a single grep, and prefer the Studio debugger over scattered `Log.d`. For perf: Macrobenchmark + Perfetto/`systrace` for startup and scroll jank (watch frame timing, not wall-clock), the Layout Inspector for recomposition counts, StrictMode to surface main-thread I/O, and `adb shell dumpsys gfxinfo <pkg>` for dropped frames. R8/baseline-profile regressions only show in a `release` build — measure there, not `debug`.
 
 ## Phase 5 — Fix + regression test
 

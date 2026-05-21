@@ -70,6 +70,27 @@ Give the user the run command. They'll drive it themselves; the interesting mome
 
 When the prototype has done its job, the answer to the question is the only thing worth keeping. If the user is around, ask what it taught them. If not, leave a `NOTES.md` next to the prototype so the answer can be filled in (or filled in by you, if you've watched the session) before the prototype gets deleted.
 
+## Android / Kotlin
+
+The logic prototype fits Android well because the bit worth keeping — the reducer, state machine, or use case — should already be **pure Kotlin with no Android imports**. Build it in a throwaway JVM module with the `application` plugin, keep the state model free of `ViewModel`, `Context`, `Flow`-plumbing, and `Log`, and wrap it in a `fun main()` console loop.
+
+```kotlin
+// Pure — liftable straight into the real module later
+data class CheckoutState(val items: List<Item>, val status: Status)
+fun reduce(state: CheckoutState, action: CheckoutAction): CheckoutState = ...
+
+// Throwaway shell — fun main(), readLine() loop, println the whole state each tick
+fun main() {
+    var state = CheckoutState(emptyList(), Status.Empty)
+    while (true) {
+        clearScreen(); render(state)
+        state = reduce(state, parse(readLine()) ?: continue)
+    }
+}
+```
+
+Run with `./gradlew :prototype:run`. When the model feels right, the reducer/state types move into the ViewModel's module unchanged; the `main()` shell gets deleted. A scratch JUnit test driving the reducer through a sequence of actions is a fine alternative shell if a console loop is overkill — but keep it throwaway, not a real test.
+
 ## Anti-patterns
 
 - **Don't add tests.** A prototype that needs tests is no longer a prototype.

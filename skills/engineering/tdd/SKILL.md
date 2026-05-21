@@ -15,6 +15,8 @@ description: Test-driven development with red-green-refactor loop. Use when user
 
 See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking guidelines.
 
+**Android / Kotlin:** the loop is `./gradlew :module:testDebugUnitTest` (or the module's test task). Stack: JUnit5, Turbine for flows, AssertK for assertions, `UnconfinedTestDispatcher` + `Dispatchers.setMain`. Test ViewModels through `state`/`events`; use **fakes** for repositories, never mocks of your own modules — see [tests.md](tests.md), [mocking.md](mocking.md), [interface-design.md](interface-design.md).
+
 ## Anti-Pattern: Horizontal Slices
 
 **DO NOT write all tests first, then all implementation.** This is "horizontal slicing" - treating RED as "write all tests" and GREEN as "write all code."

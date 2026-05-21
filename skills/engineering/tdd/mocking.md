@@ -57,3 +57,26 @@ The SDK approach means:
 - No conditional logic in test setup
 - Easier to see which endpoints a test exercises
 - Type safety per endpoint
+
+## Android / Kotlin
+
+**Prefer fakes over mocks.** A `FakeNoteRepository : NoteRepository` backed by an in-memory `MutableList` catches more real bugs than `mockk` and survives refactors — it satisfies the same interface the real one does. Reach for `mockk`/`coVerify` only at true externals you don't own.
+
+The Android boundary map:
+
+- **Repository / data source** → fake. It's yours; the interface already exists for DI.
+- **Room** → in-memory DB (`Room.inMemoryDatabaseBuilder(...)`), Robolectric or instrumented. Don't mock the DAO.
+- **Ktor `HttpClient`** → swap `MockEngine` in, assert through the repository. Don't mock the client object.
+- **System SDKs you don't control** (Play Billing, FusedLocation, FCM) → mock at the injected port.
+
+Inject dependencies through the constructor so tests pass fakes and Koin wires the real adapters in production:
+
+```kotlin
+// Easy to fake — Koin provides the real repo in prod, tests pass FakeNoteRepository
+class NoteListViewModel(private val repo: NoteRepository) : ViewModel()
+
+// Hard to fake — repo built internally, no seam
+class NoteListViewModel : ViewModel() {
+    private val repo = NoteRepository(NoteDatabase.get().noteDao())
+}
+```

@@ -104,6 +104,38 @@ Once a variant has won, write down which one and why (commit message, ADR, issue
 
 Don't leave variant components or the switcher lying around. They rot fast and confuse the next reader.
 
+## Compose (Android / Kotlin)
+
+No URL to hang `?variant=` off, so the switch is local state. Two routes, by purpose:
+
+- **Live, interactive comparison** → host the variants on the real screen behind a debug-only switcher. Hoist a `var variant by rememberSaveable { mutableStateOf("A") }`, render `when (variant) { ... }` over the same hoisted state, and overlay a floating bar gated on `BuildConfig.DEBUG` so it can't ship.
+
+  ```kotlin
+  @Composable
+  fun SettingsScreenWithVariants(state: SettingsState, onAction: (SettingsAction) -> Unit) {
+      var variant by rememberSaveable { mutableStateOf("A") }
+      Box(Modifier.fillMaxSize()) {
+          when (variant) {
+              "A" -> SettingsVariantA(state, onAction)
+              "B" -> SettingsVariantB(state, onAction)
+              else -> SettingsVariantC(state, onAction)
+          }
+          if (BuildConfig.DEBUG) {
+              PrototypeSwitcher(
+                  variants = listOf("A", "B", "C"),
+                  current = variant,
+                  onSelect = { variant = it },
+                  modifier = Modifier.align(Alignment.BottomCenter),
+              )
+          }
+      }
+  }
+  ```
+
+- **Quick static comparison** → one `@Preview` per variant fed the same fake state, viewed side by side in the Studio preview pane. Faster when you don't need a running app and the difference is purely visual.
+
+The structural-difference rule still holds: variants must disagree about layout and information hierarchy, not just `MaterialTheme` colours. Point variants at fake state (a `SettingsState` literal), never real mutations. When one wins, fold it into the screen and delete the switcher, the losing variants, and the `@Preview`s.
+
 ## Anti-patterns
 
 - **Variants that differ only in colour or copy.** That's a tweak, not a prototype. Real variants disagree about structure.
