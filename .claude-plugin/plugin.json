@@ -1,6 +1,7 @@
 {
   "name": "mattpocock-skills",
   "skills": [
+    "./skills/engineering/confidence-gate-android",
     "./skills/engineering/diagnose",
     "./skills/engineering/grill-with-docs",
     "./skills/engineering/triage",

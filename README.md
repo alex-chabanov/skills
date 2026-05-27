@@ -146,6 +146,7 @@ Software engineering fundamentals matter more than ever. These skills are my bes
 
 Skills I use daily for code work.
 
+- **[confidence-gate-android](./skills/engineering/confidence-gate-android/SKILL.md)** — Android/Kotlin confidence gate. Brutal 1–10 self-assessment across the 6 general dimensions plus 6 Android ones (lifecycle, concurrency, leaks, performance, compatibility, build/release); blocks commits below 10/10. Use instead of the general confidence-gate in Android repos.
 - **[diagnose](./skills/engineering/diagnose/SKILL.md)** — Disciplined diagnosis loop for hard bugs and performance regressions: reproduce → minimise → hypothesise → instrument → fix → regression-test.
 - **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)** — Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates `CONTEXT.md` and ADRs inline.
 - **[triage](./skills/engineering/triage/SKILL.md)** — Triage issues through a state machine of triage roles.
