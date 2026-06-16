@@ -7,6 +7,7 @@ Skills I use daily for code work.
 - **[grill-with-docs](./grill-with-docs/SKILL.md)** — Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates `CONTEXT.md` and ADRs inline.
 - **[triage](./triage/SKILL.md)** — Triage issues through a state machine of triage roles.
 - **[improve-codebase-architecture](./improve-codebase-architecture/SKILL.md)** — Find deepening opportunities in a codebase, informed by the domain language in `CONTEXT.md` and the decisions in `docs/adr/`.
+- **[improve](./improve/SKILL.md)** — Survey a codebase read-only as a senior advisor and produce prioritized, self-contained handoff plans for cheaper executor models to implement. Audits bugs, security, performance, tests, tech debt, migrations, and direction; mobile-aware (Android/Kotlin & Apple/Swift).
 - **[karpathy-guidelines](./karpathy-guidelines/SKILL.md)** — Behavioral guidelines from Karpathy's LLM-coding observations: surface assumptions, prefer simplicity, make surgical changes, define verifiable success criteria.
 - **[setup-matt-pocock-skills](./setup-matt-pocock-skills/SKILL.md)** — Scaffold the per-repo config (issue tracker, triage label vocabulary, domain doc layout) that the other engineering skills consume.
 - **[tdd](./tdd/SKILL.md)** — Test-driven development with a red-green-refactor loop. Builds features or fixes bugs one vertical slice at a time.
