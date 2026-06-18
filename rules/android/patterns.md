@@ -115,6 +115,7 @@ sealed interface ProfileEvent {
 - State: serializable, immutable, `data class`. One per screen.
 - Action: every user intent — UI calls `viewModel.onAction(...)`. No other public methods on the ViewModel.
 - Event: one-shot side effects (navigation, snackbars). Emitted via `Channel(BUFFERED).receiveAsFlow()`. Collected with `ObserveAsEvents` to respect lifecycle.
+- Screen params (Intent extras, nav args): the ViewModel extracts them from `SavedStateHandle` — not the Activity reading the `Intent` and hand-passing them in. The framework injects extras into `SavedStateHandle`, so it's the source of truth: survives process death without manual save/restore, keeps the Activity a dumb host, and is unit-testable via `SavedStateHandle(mapOf(...))`. The ViewModel must never reference `android.content.Intent` (`SavedStateHandle` is platform-agnostic, so it's fine).
 
 ## UiText for strings
 
