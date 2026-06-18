@@ -116,6 +116,20 @@ sealed interface ProfileEvent {
 - Action: every user intent — UI calls `viewModel.onAction(...)`. No other public methods on the ViewModel.
 - Event: one-shot side effects (navigation, snackbars). Emitted via `Channel(BUFFERED).receiveAsFlow()`. Collected with `ObserveAsEvents` to respect lifecycle.
 - Screen params (Intent extras, nav args): the ViewModel extracts them from `SavedStateHandle` — not the Activity reading the `Intent` and hand-passing them in. The framework injects extras into `SavedStateHandle`, so it's the source of truth: survives process death without manual save/restore, keeps the Activity a dumb host, and is unit-testable via `SavedStateHandle(mapOf(...))`. The ViewModel must never reference `android.content.Intent` (`SavedStateHandle` is platform-agnostic, so it's fine).
+- State survival — ask this for **every** mutable ViewModel field before declaring it: *must this value survive process death?* A plain `MutableStateFlow` (or `private var`) survives configuration change (rotation) but is **lost** when the system kills a backgrounded app and the user returns. Don't default to `MutableStateFlow` without answering the question.
+  - Yes, must survive death, **and** it's small, Bundle-able, and can't be reloaded/re-derived (selected filter, search query, in-progress form field) → back it with `SavedStateHandle`. `SavedStateHandle` writes through a `Bundle`, so only Bundle-able types survive (primitives, `String`, `Parcelable`/`@Parcelize`, `Serializable`, arrays/`ArrayList` of those) and total size must stay small (~1 MB binder limit → `TransactionTooLargeException`). Non-Parcelable domain object → make it `@Parcelize` or store a key and rehydrate. Big blob → reload from repo, don't stash.
+
+    ```kotlin
+    // ❌ lost on process death
+    private val _selectedKeyword = MutableStateFlow<String?>(null)
+
+    // ✅ survives process death, still a StateFlow
+    val selectedKeyword = savedStateHandle.getStateFlow<String?>("selectedKeyword", null)
+    fun onKeywordSelected(value: String?) { savedStateHandle["selectedKeyword"] = value }
+    ```
+
+  - No — it's a screen param, reloadable from a repo, or cheaply re-derivable → plain `MutableStateFlow`; reload or re-extract on recreation.
+  - Caveat: if a value vanishes on **rotation** (not just process death), that's a ViewModel **scoping bug** (hand-constructed VM, wrong owner, `remember { VM() }`) — fix the wiring; `SavedStateHandle` would only mask it.
 
 ## UiText for strings
 
