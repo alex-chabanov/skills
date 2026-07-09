@@ -50,12 +50,12 @@ intent is what lets a correct judgment call happen when a detail is off.
 The facts the executor needs, inlined — never "as discussed" or "see audit":
 
 - The relevant files, each with one line on its role:
-  - `src/orders/api.ts` — order-list endpoint; contains the N+1 (lines 130–160)
+  - `feature/orders/src/main/kotlin/OrderRepository.kt` — order-list query; contains the N+1 (lines 130–160)
 - Excerpts of the code as it exists today (short, with `file:line` markers),
   enough that the executor can confirm it's looking at the right thing.
 - The repo conventions that apply here, with a pointer to one exemplar file:
-  "Error handling follows the Result pattern — see `src/lib/result.ts` and its
-  use in `src/users/api.ts:40-60`. Match it."
+  "Error handling follows the Result pattern — see `core/common/src/main/kotlin/Result.kt`
+  and its use in `feature/users/src/main/kotlin/UserRepository.kt:40-60`. Match it."
 - Any documented vocabulary or design constraints the plan must honor, inlined
   from the intent/design docs found in recon: the relevant `CONTEXT.md` terms
   the executor should use in names and comments, the `DESIGN.md` tokens/components
@@ -64,12 +64,12 @@ The facts the executor needs, inlined — never "as discussed" or "see audit":
 
 ## Commands you will need
 
-| Purpose   | Command                  | Expected on success |
-|-----------|--------------------------|---------------------|
-| Install   | `pnpm install`           | exit 0              |
-| Typecheck | `pnpm typecheck`         | exit 0, no errors   |
-| Tests     | `pnpm test -- <filter>`  | all pass            |
-| Lint      | `pnpm lint`              | exit 0              |
+| Purpose   | Command                                                           | Expected on success |
+|-----------|-------------------------------------------------------------------|---------------------|
+| Compile   | `./gradlew compileDebugKotlin`                                     | exit 0, no errors   |
+| Tests     | `./gradlew :feature:orders:testDebugUnitTest --tests '<filter>'`   | all pass            |
+| Lint      | `./gradlew detekt`                                                 | exit 0              |
+| Release   | `./gradlew assembleRelease`                                        | exit 0 (R8 clean)   |
 
 (Exact commands from this repo — verified during recon, not guessed.)
 
@@ -79,23 +79,23 @@ The facts the executor needs, inlined — never "as discussed" or "see audit":
 executor's environment. Skip the section otherwise.)
 
 - Skills the executor should invoke if available, and for what:
-  "use `vercel-react-best-practices` when writing the memoization in step 3".
-  On a mobile repo, point at the platform skills you saw available — e.g.
-  `android-compose-ui` for recomposition/stability work, `r8-analyzer` for
-  keep-rule cleanup, `agp-9-upgrade` / `edge-to-edge` /
-  `play-billing-library-version-upgrade` for the matching migration. Name a
-  skill only when it plausibly exists in the executor's environment.
+  "use `android-compose-ui` when fixing the recomposition in step 3".
+  Point at the platform skills you saw available — e.g. `android-compose-ui` for
+  recomposition/stability work, `r8-analyzer` for keep-rule cleanup,
+  `agp-9-upgrade` / `edge-to-edge` / `play-billing-library-version-upgrade` for the
+  matching migration. Name a skill only when it plausibly exists in the executor's
+  environment.
 - Reference docs worth reading before starting, by path or URL.
 
 ## Scope
 
 **In scope** (the only files you should modify):
-- `src/orders/api.ts`
-- `src/orders/api.test.ts` (create)
+- `feature/orders/src/main/kotlin/OrderRepository.kt`
+- `feature/orders/src/test/kotlin/OrderRepositoryTest.kt` (create)
 
 **Out of scope** (do NOT touch, even though they look related):
-- `src/orders/legacy-api.ts` — deprecated path, scheduled for deletion;
-  changing it wastes effort and risks the v1 clients still pinned to it.
+- `feature/orders/src/main/kotlin/LegacyOrderRepository.kt` — deprecated path, scheduled for
+  deletion; changing it wastes effort and risks the v1 clients still pinned to it.
 - Any change to the public response shape — clients depend on it.
 
 ## Git workflow
@@ -127,16 +127,16 @@ callers, then remove old path.)
 - New tests to write, in which file, covering which cases (list them:
   happy path, the specific bug/regression this plan fixes, named edge cases).
 - Which existing test to use as the structural pattern:
-  "model after `src/users/api.test.ts`".
+  "model after `feature/users/src/test/kotlin/UserRepositoryTest.kt`".
 - Verification: `<test command>` → all pass, including N new tests.
 
 ## Done criteria
 
 Machine-checkable. ALL must hold:
 
-- [ ] `pnpm typecheck` exits 0
-- [ ] `pnpm test` exits 0; new tests for <X> exist and pass
-- [ ] `grep -rn "<old pattern>" src/` returns no matches
+- [ ] `./gradlew compileDebugKotlin` exits 0
+- [ ] `./gradlew testDebugUnitTest` exits 0; new tests for <X> exist and pass
+- [ ] `grep -rn "<old pattern>" feature/ core/` returns no matches
 - [ ] No files outside the in-scope list are modified (`git status`)
 - [ ] `plans/README.md` status row updated
 

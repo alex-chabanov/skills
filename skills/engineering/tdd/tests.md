@@ -4,14 +4,15 @@
 
 **Integration-style**: Test through real interfaces, not mocks of internal parts.
 
-```typescript
+```kotlin
 // GOOD: Tests observable behavior
-test("user can checkout with valid cart", async () => {
-  const cart = createCart();
-  cart.add(product);
-  const result = await checkout(cart, paymentMethod);
-  expect(result.status).toBe("confirmed");
-});
+@Test
+fun `user can checkout with valid cart`() = runTest {
+    val cart = createCart()
+    cart.add(product)
+    val result = checkout(cart, paymentMethod)
+    assertThat(result.status).isEqualTo(OrderStatus.Confirmed)
+}
 ```
 
 Characteristics:
@@ -26,13 +27,14 @@ Characteristics:
 
 **Implementation-detail tests**: Coupled to internal structure.
 
-```typescript
+```kotlin
 // BAD: Tests implementation details
-test("checkout calls paymentService.process", async () => {
-  const mockPayment = jest.mock(paymentService);
-  await checkout(cart, payment);
-  expect(mockPayment.process).toHaveBeenCalledWith(cart.total);
-});
+@Test
+fun `checkout calls paymentService process`() = runTest {
+    val payments = mockk<PaymentService>(relaxed = true)
+    checkout(cart, payments)
+    coVerify { payments.process(cart.total) }
+}
 ```
 
 Red flags:
@@ -44,41 +46,44 @@ Red flags:
 - Test name describes HOW not WHAT
 - Verifying through external means instead of interface
 
-```typescript
+```kotlin
 // BAD: Bypasses interface to verify
-test("createUser saves to database", async () => {
-  await createUser({ name: "Alice" });
-  const row = await db.query("SELECT * FROM users WHERE name = ?", ["Alice"]);
-  expect(row).toBeDefined();
-});
+@Test
+fun `createUser saves to database`() = runTest {
+    createUser(name = "Alice")
+    val row = db.query("SELECT * FROM users WHERE name = ?", "Alice")
+    assertThat(row).isNotNull()
+}
 
 // GOOD: Verifies through interface
-test("createUser makes user retrievable", async () => {
-  const user = await createUser({ name: "Alice" });
-  const retrieved = await getUser(user.id);
-  expect(retrieved.name).toBe("Alice");
-});
+@Test
+fun `createUser makes user retrievable`() = runTest {
+    val user = createUser(name = "Alice")
+    assertThat(getUser(user.id).name).isEqualTo("Alice")
+}
 ```
 
 **Tautological tests**: Expected value restates the implementation, so the test passes by construction.
 
-```typescript
+```kotlin
 // BAD: Expected value is recomputed the way the code computes it
-test("calculateTotal sums line items", () => {
-  const items = [{ price: 10 }, { price: 5 }];
-  const expected = items.reduce((sum, i) => sum + i.price, 0);
-  expect(calculateTotal(items)).toBe(expected);
-});
+@Test
+fun `calculateTotal sums line items`() {
+    val items = listOf(LineItem(price = 10), LineItem(price = 5))
+    val expected = items.sumOf { it.price }
+    assertThat(calculateTotal(items)).isEqualTo(expected)
+}
 
 // GOOD: Expected value is an independent, known literal
-test("calculateTotal sums line items", () => {
-  expect(calculateTotal([{ price: 10 }, { price: 5 }])).toBe(15);
-});
+@Test
+fun `calculateTotal sums line items`() {
+    assertThat(calculateTotal(listOf(LineItem(price = 10), LineItem(price = 5)))).isEqualTo(15)
+}
 ```
 
 ## Android / Kotlin
 
-Same principle: test the ViewModel through its `state`/`events`, not its private fields. Use Turbine for flows, AssertK for assertions, a **fake** repository for the dependency. `Dispatchers.setMain(UnconfinedTestDispatcher())` in `@BeforeEach`.
+Test the ViewModel through its `state`/`events`, not its private fields. Use Turbine for flows, AssertK for assertions, a **fake** repository for the dependency. `Dispatchers.setMain(UnconfinedTestDispatcher())` in `@BeforeEach`.
 
 ```kotlin
 // GOOD: behaviour through the public state flow
@@ -104,3 +109,28 @@ fun `refresh calls dao insert`() = runTest {
 ```
 
 Red flags map directly: asserting on `viewModel.someInternalField`, verifying a DAO/`HttpClient` call count, or querying Room directly instead of reading it back through the repository.
+
+## Apple / Swift
+
+Same principle with Swift Testing: assert on the observable output of the type under test, and let a fake satisfy the dependency's protocol.
+
+```swift
+// GOOD: behaviour through the observable interface
+@Test func refreshLoadsNotesIntoState() async throws {
+    let viewModel = NoteListViewModel(repository: FakeNoteRepository())
+    await viewModel.refresh()
+    #expect(viewModel.state.isLoading == false)
+    #expect(viewModel.state.notes.isEmpty == false)
+}
+```
+
+```swift
+// BAD: asserts on a spy's call record, and reaches past the interface into the store
+@Test func refreshCallsStoreInsert() async throws {
+    let store = SpyNoteStore()
+    await NoteListViewModel(repository: NoteRepository(store: store)).refresh()
+    #expect(store.insertCallCount == 1)   // breaks on any internal refactor
+}
+```
+
+Red flags map directly: asserting on a `private(set)` field the view never reads, counting `URLSession`/`NSManagedObjectContext` calls, or fetching from Core Data directly instead of reading back through the repository.

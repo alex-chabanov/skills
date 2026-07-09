@@ -27,7 +27,7 @@ Reach for it when you have a design question that's hard to settle on paper — 
 The question decides the shape, and there are two shapes:
 
 - **"Does this logic / state model feel right?"** — a tiny interactive terminal app that pushes the state machine through the awkward cases, printing the full state after every action so you can watch what changes.
-- **"What should this look like?"** — several radically different UI variations on one route, switchable from a floating bar, so you compare real renders instead of imagining them.
+- **"What should this look like?"** — several radically different UI variations on one screen, switchable from a floating bar, so you compare real renders instead of imagining them.
 
 Picking the wrong branch wastes the whole prototype, so the question comes first. Both branches keep state in memory, run from one command, and surface the full state on every step.
 

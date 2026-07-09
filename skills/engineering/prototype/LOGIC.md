@@ -58,7 +58,7 @@ The whole frame should fit on one screen.
 
 ### 5. Make it runnable in one command
 
-Add a script to the project's existing task runner (`package.json` scripts, `Makefile`, `justfile`, `pyproject.toml`). The user should run `pnpm run <prototype-name>` or equivalent — never need to remember a path.
+Add an entry to the project's existing task runner (a Gradle task, a `Package.swift` executable target, `Makefile`, `justfile`). The user should run `./gradlew :prototype:run`, `swift run <prototype-name>`, or equivalent — never need to remember a path.
 
 If the host project has no task runner, just put the command at the top of the prototype's README.
 
