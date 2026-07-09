@@ -60,6 +60,22 @@ test("createUser makes user retrievable", async () => {
 });
 ```
 
+**Tautological tests**: Expected value restates the implementation, so the test passes by construction.
+
+```typescript
+// BAD: Expected value is recomputed the way the code computes it
+test("calculateTotal sums line items", () => {
+  const items = [{ price: 10 }, { price: 5 }];
+  const expected = items.reduce((sum, i) => sum + i.price, 0);
+  expect(calculateTotal(items)).toBe(expected);
+});
+
+// GOOD: Expected value is an independent, known literal
+test("calculateTotal sums line items", () => {
+  expect(calculateTotal([{ price: 10 }, { price: 5 }])).toBe(15);
+});
+```
+
 ## Android / Kotlin
 
 Same principle: test the ViewModel through its `state`/`events`, not its private fields. Use Turbine for flows, AssertK for assertions, a **fake** repository for the dependency. `Dispatchers.setMain(UnconfinedTestDispatcher())` in `@BeforeEach`.
