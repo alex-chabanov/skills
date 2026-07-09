@@ -25,6 +25,8 @@ The route most work travels. You have an idea and want it built.
 
    Either way, **`/implement`** builds each issue by driving **`/tdd`** internally — one red-green slice at a time — then closes out by running **`/code-review`**, a two-axis review (Standards + Spec) of the diff, before committing. Reach for **`/tdd`** on its own when you just want to build a concrete behaviour test-first without a full spec, and **`/code-review`** on its own whenever you want to review a branch or PR against a fixed point.
 
+   Last, before the commit lands: **`/confidence-gate`**. It scores the work 1–10 with brutal honesty and **blocks below 10/10** — 9 is blocked exactly like 3. Where `/code-review` asks *is this diff good*, the gate asks *am I willing to claim this is done*, and refuses to let you say so on unverified evidence. In Android/Kotlin or Apple/Swift repos it extends to twelve dimensions (lifecycle, concurrency, leaks, performance, compatibility, build/release) and **caps the score** whenever a dimension can only be checked on a real device — naming the command a human must run instead of silently passing.
+
 ### Context hygiene
 
 Keep steps 1–3 in **one unbroken context window** — don't compact or clear until after `/to-tickets` — so the grilling, spec, and tickets all build on the same thinking. Each `/implement` then starts fresh, working from the ticket.
@@ -49,6 +51,8 @@ Not feature work — upkeep.
 
 - **`/improve-codebase-architecture`** — run whenever you have a spare moment to keep the codebase good for agents to operate in. It surfaces **deepening opportunities**; picking one _generates an idea_ you can take into the main flow at `/grill-with-docs`. It's the survey that finds the candidates; **`/codebase-design`** (below) is the bench you design the chosen one on.
 
+- **`/improve`** — a wider survey, run as a **senior advisor who never implements**. It audits across bugs, security, performance, test coverage, tech debt, migrations and product direction, then writes **self-contained plans for a different, cheaper model to execute** — the plan is the product. It is strictly read-only on source: the only files it writes live under `plans/`. Where `/improve-codebase-architecture` asks *what shape should this module be*, `/improve` asks *what is worth doing next, and how do I hand it off*. Mobile-aware — it detects Android/Kotlin and Apple/Swift and weights the risks and verify commands accordingly.
+
 ## Vocabulary underneath
 
 Two model-invoked references that run *beneath* the other skills — each the single source of truth for its vocabulary. Reach for them directly when the **words**, not the process, are the problem; or let the skills above pull them in.
@@ -70,6 +74,7 @@ Off the main flow entirely.
 - **`/research`** — delegate reading legwork to a **background agent**: it investigates a question against **primary sources**, then leaves a cited Markdown file in the repo. Keep working while it reads. The file it produces is something to take *into* the main flow at `/grill-with-docs` — research feeds the thinking, it doesn't replace it.
 - **`/teach`** — learn a concept over multiple sessions, using the current directory as a stateful workspace.
 - **`/writing-great-skills`** — reference for writing and editing skills well.
+- **`/karpathy-guidelines`** — behavioural reference for how the agent should write code at all: surface assumptions instead of guessing, prefer the simplest thing that solves the problem, keep changes **surgical** (every changed line traces to the request), and turn vague tasks into verifiable success criteria it can loop against. It biases toward caution over speed, so it earns its keep on real code and gets out of the way on trivia.
 
 ## Precondition
 
