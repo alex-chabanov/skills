@@ -6,14 +6,34 @@ set -euo pipefail
 # loaded Android rules into every project (and would contradict Swift rules if
 # both were made global). stdout becomes session context.
 
-RULES_ROOT="/Users/alex/Documents/projects/skills/rules"
+# Resolve this script's own directory, following symlinks. `dirname "$0"` alone would
+# point at the symlink's directory, not the repo, and `readlink -f` is not portable to
+# the BSD readlink shipped on older macOS.
+# No cycle guard is needed: the OS refuses to open a cyclic symlink (ELOOP), so bash
+# never reaches this loop with one. A hop cap would only misfire on long valid chains.
+src="${BASH_SOURCE[0]}"
+while [ -L "$src" ]; do
+  dir="$(cd -P "$(dirname "$src")" && pwd)"
+  src="$(readlink "$src")"
+  case $src in /*) ;; *) src="$dir/$src" ;; esac
+done
+RULES_ROOT="$(cd -P "$(dirname "$src")" && pwd)"
 cwd="${CLAUDE_PROJECT_DIR:-$PWD}"
 
+# A wrong RULES_ROOT must be loud, not silent: this hook's entire job is injecting the
+# platform rules, and silently injecting none looks identical to "no platform detected".
+if [ ! -d "$RULES_ROOT/android" ] && [ ! -d "$RULES_ROOT/swift" ]; then
+  echo "detect-rules.sh: no rulesets under $RULES_ROOT — platform rules will NOT load" >&2
+  exit 0
+fi
+
 emit() {
-  local platform="$1"
+  local platform="$1" dir="$RULES_ROOT/$2"
+  # A missing ruleset must not abort the session hook — emit nothing and move on.
+  [ -d "$dir" ] || return 0
   echo "# ${platform} project rules (auto-loaded by detect-rules.sh)"
   echo
-  find "$RULES_ROOT/$2" -maxdepth 1 -name '*.md' | sort | while IFS= read -r f; do
+  find "$dir" -maxdepth 1 -name '*.md' | sort | while IFS= read -r f; do
     echo "## rules/$2/$(basename "$f")"
     echo
     cat "$f"
@@ -48,9 +68,12 @@ is_swift() {
      -o -name '*.xcodeproj' -o -name '*.xcworkspace'
 }
 
+# Checked independently, not as an if/elif chain: a KMP repo with an iOS app matches
+# both, and confidence-gate's platform mode expects both rulesets to be present so it
+# can run dimensions 7-12 for each. Neither matched -> emit nothing.
 if is_android; then
   emit "Android" android
-elif is_swift; then
+fi
+if is_swift; then
   emit "Swift" swift
 fi
-# neither matched -> emit nothing; project gets no platform-specific rules
