@@ -5,11 +5,8 @@ description: >
   brutal honesty on a 1–10 scale, blocks progress if score < 10, and runs investigation loops to
   reach 10/10. Auto-extends to 12 dimensions in mobile/UI repos — Android/Kotlin and Apple/Swift
   (lifecycle, concurrency, leaks, performance, compatibility, build/release) with a device-tier
-  verification cap. MUST be invoked
-  at the confidence phase of any workflow. Trigger on: "confidence check", "confidence gate",
-  "am I ready to commit", "rate my solution", "confidence", or whenever reaching the final phase
-  before commit. You CANNOT say "done" or propose a commit without completing this gate.
-  Non-negotiable at all complexity levels.
+  verification cap. Use at the confidence phase of any workflow, whenever reaching the final
+  phase before a commit, or when asked for a confidence check / gate or a rating of the solution.
 ---
 
 # Confidence Gate
@@ -20,10 +17,6 @@ description: >
 
 Not a formality — hard gate. Score below 10 means something is wrong. Honest self-assessment now
 prevents production failures, wasted review cycles, and broken trust.
-
-```
-NO COMMIT. NO "DONE". NO PR. WITHOUT 10/10.
-```
 
 ## The Scale
 
@@ -280,16 +273,10 @@ Always write this file regardless of score:
 | **< 10/10** | Write `confidence.md` with BLOCKED. Do NOT commit. Do NOT say "done". |
 | **device-tier unverified (Android/Apple)** | Write `confidence.md` with BLOCKED — awaiting device verification. List the commands. Do NOT commit. |
 
-## Global Constraints
+## Scoring integrity
 
-Apply at ALL times, not just when the skill is explicitly invoked:
-
-- **Never** say "done", "complete", "finished", "ready", "good to go" without 10/10
-- **Never** propose a commit or PR without 10/10
-- **Never** skip this gate because the task "seems simple"
-- **Never** score 10 to avoid the work — that is dishonesty, not efficiency
-- **Never** (Android/Apple) award 10 on a touched device-tier dimension you didn't actually verify
-- If `/commit` is requested and `confidence.md` is absent or < 10/10: **block the commit**, run this gate first
+- Score what you verified, not what would let you finish: a 10 awarded to skip work defeats the gate.
+- (Android/Apple) A touched device-tier dimension you could not run caps the score below 10.
 
 ## Anti-Patterns to Reject
 

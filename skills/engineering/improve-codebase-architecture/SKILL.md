@@ -29,7 +29,7 @@ Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't
 
 Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it? A "yes, concentrates" is the signal you want.
 
-On Android/Kotlin, common shallow shapes to probe: a ViewModel reaching a DAO or `HttpClient` directly with no repository seam; "God" ViewModels holding logic that belongs in a use case; mappers and `Result` handling duplicated across call sites instead of behind one repository interface; a single-adapter port that only ever has its production implementation (indirection, not a seam). See [DEEPENING.md](DEEPENING.md) for how each Android dependency category is tested across its seam.
+On Android/Kotlin, common shallow shapes to probe: a ViewModel reaching a DAO or `HttpClient` directly with no repository seam; "God" ViewModels holding logic that belongs in a use case; mappers and `Result` handling duplicated across call sites instead of behind one repository interface; a single-adapter port that only ever has its production implementation (indirection, not a seam). See [DEEPENING.md](../codebase-design/DEEPENING.md) for how each Android dependency category is tested across its seam.
 
 ### 2. Present candidates as an HTML report
 
