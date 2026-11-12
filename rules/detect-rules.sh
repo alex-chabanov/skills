@@ -27,18 +27,42 @@ if [ ! -d "$RULES_ROOT/android" ] && [ ! -d "$RULES_ROOT/swift" ]; then
   exit 0
 fi
 
+# When to read each rule file, keyed by basename. Files not listed still appear in
+# the index with a generic hint, so adding a rule file never requires editing this.
+read_when() {
+  case "$1" in
+    coding-style.md) echo "before writing, editing, or reviewing any source code" ;;
+    patterns.md)     echo "before adding API/error/state/navigation code" ;;
+    testing.md)      echo "before writing or changing tests" ;;
+    security.md)     echo "before touching secrets, auth, storage, networking, or merging" ;;
+    performance.md)  echo "before perf work or choosing a model for subagents" ;;
+    git-workflow.md) echo "before committing, branching, or opening a PR" ;;
+    agents.md)       echo "before deciding whether to spawn a subagent" ;;
+    hooks.md)        echo "before adding or changing git hooks or Claude Code hooks" ;;
+    *)               echo "when its topic is relevant" ;;
+  esac
+}
+
+# Emit an INDEX, not the rule bodies. SessionStart stdout above the hook-output cap
+# is replaced by a ~2KB preview plus a file path, so cat-ing ~45KB of rules here
+# silently dropped ~95% of them. Paths are absolute so the model can Read them.
 emit() {
   local platform="$1" dir="$RULES_ROOT/$2"
   # A missing ruleset must not abort the session hook — emit nothing and move on.
   [ -d "$dir" ] || return 0
   echo "# ${platform} project rules (auto-loaded by detect-rules.sh)"
   echo
+  echo "These ${platform} rules apply to this project. They are NOT inlined: Read the"
+  echo "matching file with the Read tool at the moment listed, before acting. They"
+  echo "override existing code patterns."
+  echo
   find "$dir" -maxdepth 1 -name '*.md' | sort | while IFS= read -r f; do
-    echo "## rules/$2/$(basename "$f")"
-    echo
-    cat "$f"
-    echo
+    local name title
+    name="$(basename "$f")"
+    title="$(sed -n 's/^# //p' "$f" | head -1)"
+    echo "- \`$f\` — ${title:-$name}. Read $(read_when "$name")."
   done
+  echo
 }
 
 any_exists() { for f in "$@"; do [ -e "$f" ] && return 0; done; return 1; }

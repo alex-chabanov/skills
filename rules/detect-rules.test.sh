@@ -61,6 +61,21 @@ cp "$SCRIPT" "$FIX/orphan.sh"
 orphan_err="$(CLAUDE_PROJECT_DIR="$FIX/android_root" bash "$FIX/orphan.sh" 2>&1 >/dev/null)"
 check "orphaned copy warns on stderr" "warned" "$([ -n "$orphan_err" ] && echo warned || echo silent)"
 
+# Output must stay far below the SessionStart hook-output cap: above it the harness
+# keeps only a ~2KB preview, which silently dropped most rules when bodies were cat-ed.
+kmp_out="$(CLAUDE_PROJECT_DIR="$FIX/kmp" bash "$SCRIPT" 2>/dev/null)"
+check "KMP output under 6000 bytes" "small" "$([ "$(printf '%s' "$kmp_out" | wc -c)" -lt 6000 ] && echo small || echo big)"
+
+# Every rule file must be indexed by an absolute path the model can Read.
+RULES_DIR="$(dirname "$SCRIPT")"
+missing=0
+for f in "$RULES_DIR"/android/*.md "$RULES_DIR"/swift/*.md; do
+  [ -e "$f" ] || continue
+  printf '%s' "$kmp_out" | grep -qF "\`$f\`" || { missing=$((missing + 1)); echo "    unindexed: $f"; }
+done
+check "every rule file indexed" "0" "$missing"
+check "rule bodies not inlined" "0" "$(printf '%s\n' "$kmp_out" | grep -c '^## ')"
+
 echo
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]
