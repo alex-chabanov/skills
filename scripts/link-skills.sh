@@ -5,8 +5,9 @@ set -euo pipefail
 # It is not a supported installer. Modifications to it, or requests for
 # modifications, will not be approved.
 #
-# Links all skills in the repository into the local skill directories used by
-# each agent harness:
+# Links all skills in the repository (minus CLAUDE_EXCLUDES below, for
+# ~/.claude/skills only) into the local skill directories used by each agent
+# harness:
 #   - ~/.claude/skills: Claude Code
 #   - ~/.agents/skills: Codex and other Agent Skills-compatible harnesses
 # Each entry is a symlink into this repo, so a `git pull` is all that's needed
@@ -21,6 +22,24 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 DESTS=("$HOME/.claude/skills" "$HOME/.agents/skills")
+
+# Skills NOT linked into ~/.claude/skills because Claude Code already gets their
+# content another way. karpathy-guidelines is inlined every session by
+# rules/detect-rules.sh (rules/common/karpathy.md), so the skill would only
+# duplicate it. Other harnesses don't run that hook, so they keep the link.
+CLAUDE_EXCLUDES=(karpathy-guidelines)
+
+# Exit 0 when skill $2 must not be linked into destination $1.
+excluded() {
+  [ "$1" = "$HOME/.claude/skills" ] || return 1
+  local x
+  # The ${a[@]+...} form keeps bash 3.2 (macOS) from failing under `set -u`
+  # when the list is emptied.
+  for x in ${CLAUDE_EXCLUDES[@]+"${CLAUDE_EXCLUDES[@]}"}; do
+    [ "$x" = "$2" ] && return 0
+  done
+  return 1
+}
 
 # Collect the repo's skills once, link into every destination. `deprecated/`
 # is retired, and `misc/` is kept around but rarely used and not promoted (see
@@ -58,6 +77,16 @@ for DEST in "${DESTS[@]}"; do
     name="${names[$i]}"
     src="${srcs[$i]}"
     target="$DEST/$name"
+
+    # Excluded: drop a link left by an earlier run, but never touch a real
+    # directory, which is not ours to delete.
+    if excluded "$DEST" "$name"; then
+      if [ -L "$target" ]; then
+        rm "$target"
+        echo "unlinked $name (excluded from $DEST)"
+      fi
+      continue
+    fi
 
     if [ -e "$target" ] && [ ! -L "$target" ]; then
       rm -rf "$target"
