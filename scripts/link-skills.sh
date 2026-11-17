@@ -16,7 +16,8 @@ set -euo pipefail
 # destination — they are injected per-project by rules/detect-rules.sh,
 # registered as a SessionStart hook in ~/.claude/settings.json. A global symlink
 # would load one platform's rules into every project and contradict the other
-# platform's.
+# platform's. Cross-platform rules (rules/common) go through the same hook, which
+# inlines them in every project.
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 DESTS=("$HOME/.claude/skills" "$HOME/.agents/skills")

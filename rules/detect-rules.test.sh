@@ -76,6 +76,12 @@ done
 check "every rule file indexed" "0" "$missing"
 check "rule bodies not inlined" "0" "$(printf '%s\n' "$kmp_out" | grep -c '^## ')"
 
+# Common rules are always-on: inlined in every project, including platform-less ones.
+for case in neutral kmp swift_package; do
+  out="$(CLAUDE_PROJECT_DIR="$FIX/$case" bash "$SCRIPT" 2>/dev/null)"
+  check "common rules inlined ($case)" "yes" "$(printf '%s' "$out" | grep -qF '# Karpathy guidelines' && echo yes || echo no)"
+done
+
 echo
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]

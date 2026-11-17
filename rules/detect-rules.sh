@@ -22,7 +22,7 @@ cwd="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 # A wrong RULES_ROOT must be loud, not silent: this hook's entire job is injecting the
 # platform rules, and silently injecting none looks identical to "no platform detected".
-if [ ! -d "$RULES_ROOT/android" ] && [ ! -d "$RULES_ROOT/swift" ]; then
+if [ ! -d "$RULES_ROOT/android" ] && [ ! -d "$RULES_ROOT/swift" ] && [ ! -d "$RULES_ROOT/common" ]; then
   echo "detect-rules.sh: no rulesets under $RULES_ROOT — platform rules will NOT load" >&2
   exit 0
 fi
@@ -91,6 +91,18 @@ is_swift() {
   find_marker -name Package.swift -o -name Podfile \
      -o -name '*.xcodeproj' -o -name '*.xcworkspace'
 }
+
+# Common rules apply to every project and are INLINED, unlike the platform index.
+# They are always-on behavior (not a lookup a task triggers), and an index entry or a
+# skill is read only when the model decides to, and for advice this generic it never
+# does. Keep each file short: inlined bytes count toward the hook-output cap that the
+# test suite guards.
+if [ -d "$RULES_ROOT/common" ]; then
+  find "$RULES_ROOT/common" -maxdepth 1 -name '*.md' | sort | while IFS= read -r f; do
+    cat "$f"
+    echo
+  done
+fi
 
 # Checked independently, not as an if/elif chain: a KMP repo with an iOS app matches
 # both, and confidence-gate's platform mode expects both rulesets to be present so it
