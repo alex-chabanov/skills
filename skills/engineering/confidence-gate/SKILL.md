@@ -188,10 +188,6 @@ The release build is the slowest loop an agent can run (minutes: optimizer, whol
 5. Use the release command the project documents (CLAUDE.md) verbatim: identical flags and build-cache
    path every run keep unchanged modules cached.
 
-While iterating on an Apple change, a quick optimizer check may add `SWIFT_COMPILATION_MODE=incremental`
-(still `-O`, recompiles only changed files). The tier-3 result that counts for the gate is the default
-whole-module build.
-
 ### Device-tier rule (cap, never silent-pass)
 
 If a dimension you touched can **only** be verified at a tier you cannot run in this environment
