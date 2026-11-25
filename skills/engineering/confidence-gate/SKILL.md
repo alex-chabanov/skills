@@ -173,6 +173,25 @@ narrower than Android's. Only true-hardware checks are human-gated.
 | 4 | Performance / hitches | Instruments, MetricKit, hang detection | ⚠️ real device only |
 | 5 | Manual on-device QA, TestFlight, App Review | — | ❌ human only |
 
+### Release-build budget (tier 3, both platforms)
+
+The release build is the slowest loop an agent can run (minutes: optimizer, whole-module, R8). Spend it
+**once per gate, on the final candidate**:
+
+1. Investigation cycles verify with tiers 1–2 only.
+2. When the change is final and tiers 1–2 are green, run the release build once. On failure: fix, rerun
+   tiers 1–2, then rerun the release build.
+3. Reuse a green release build while the tree is unchanged. Record its fingerprint in `confidence.md`:
+   `{ git rev-parse HEAD; git diff HEAD; git ls-files -o --exclude-standard -z | xargs -0 cat; } | shasum`
+   If the current fingerprint matches, cite the recorded result instead of rebuilding.
+4. Start it in the background and run the other verification while it builds.
+5. Use the release command the project documents (CLAUDE.md) verbatim: identical flags and build-cache
+   path every run keep unchanged modules cached.
+
+While iterating on an Apple change, a quick optimizer check may add `SWIFT_COMPILATION_MODE=incremental`
+(still `-O`, recompiles only changed files). The tier-3 result that counts for the gate is the default
+whole-module build.
+
 ### Device-tier rule (cap, never silent-pass)
 
 If a dimension you touched can **only** be verified at a tier you cannot run in this environment
