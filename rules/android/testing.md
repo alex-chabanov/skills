@@ -45,12 +45,13 @@
 
 - Framework code. Don't test that `MutableStateFlow.value =` actually updates the value.
 - Generated code (DataBinding, Hilt/Koin generated, Room generated DAO impls).
-- UI pixel layout — visual regression tools (Paparazzi, Showkase) cover that, not unit tests.
+- UI pixel layout: screenshot tools (Paparazzi, or [Compose Preview Screenshot Testing](https://developer.android.com/studio/preview/compose-screenshot-testing)) cover that, not unit tests.
 - Private methods directly. Test through the public API.
 
 ## Compose UI tests
 
-- `createComposeRule()` for screen-level tests in JVM (with Robolectric or Paparazzi).
+- Import the rules from `androidx.compose.ui.test.junit4.v2`. The original `junit4` [`createComposeRule`](https://developer.android.com/reference/kotlin/androidx/compose/ui/test/junit4/package-summary) / `createAndroidComposeRule` are deprecated; v2 runs composition on `StandardTestDispatcher`, so advance the clock explicitly where needed.
+- `createComposeRule()` for screen-level tests in JVM (with Robolectric).
 - `createAndroidComposeRule<ComponentActivity>()` for instrumented.
 - Use `onNodeWithTag` with stable tags from a `TestTags` object — not `onNodeWithText` for anything user-visible (breaks on translation).
 - Assert against the ViewModel's `StateFlow` for state, against the tree for presence.
@@ -68,3 +69,5 @@
 - `./gradlew check` is the single green-light command — it runs lint, ktlint, detekt, unit, Robolectric.
 
 See also: [coding-style.md](coding-style.md), [git-workflow.md](git-workflow.md).
+
+_Last verified against developer.android.com and kotlinlang.org: 2026-11-26 (API 36, Kotlin 2.x, AGP 9). Every Android API, Gradle setting, and Play requirement in this file was checked. The scheduled rules review re-checks them._

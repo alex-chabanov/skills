@@ -120,3 +120,5 @@ Use the `hookify` plugin (`/hookify` or `/hookify <natural-language-rule>`). For
 - Disable a hook by moving its entry out of `.claude/settings.json` (JSON has no comments) and keeping a copy; don't discard it unless you're sure.
 
 See also: [agents.md](agents.md), [git-workflow.md](git-workflow.md), [security.md](security.md).
+
+_Last verified: 2026-11-26. Claude Code hook claims checked against code.claude.com/docs/en/hooks; no Android API claims._

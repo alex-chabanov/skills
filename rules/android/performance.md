@@ -8,9 +8,9 @@ Two scopes in this file:
 
 ## 1. Model selection (Haiku vs Sonnet vs Opus)
 
-Default for hands-on coding in this repo: **Opus 4.7** (already running). Pick down only when the task fits.
+Default for hands-on coding in this repo: **Opus** (already running). Pick down only when the task fits.
 
-### Haiku 4.5 — pick for
+### Pick Haiku for
 
 - One-line edits, typo fixes, renames, formatting.
 - Mechanical refactors with no judgement: import sorting, ktlint auto-fixes, dependency version bumps.
@@ -21,9 +21,9 @@ Default for hands-on coding in this repo: **Opus 4.7** (already running). Pick d
 
 **Skip Haiku when**: the task requires holding > 2 files of context, has any ambiguity, or touches security/concurrency.
 
-### Sonnet 4.6 — pick for
+### Pick Sonnet for
 
-- Implementing a phase of an already-approved plan with clear file paths and line numbers (matches `up:implementer-sonnet`).
+- Implementing a phase of an already-approved plan with clear file paths and line numbers.
 - Writing tests against an existing, stable production class.
 - Straightforward feature work in a familiar module: new screen wired to an existing repository, new endpoint following the repo's data-layer pattern.
 - Code review of a small PR (< 200 LOC) where the rubric is clear (style + obvious bugs).
@@ -31,7 +31,7 @@ Default for hands-on coding in this repo: **Opus 4.7** (already running). Pick d
 
 **Skip Sonnet when**: the task is exploratory, the design isn't validated, or there's cross-module impact.
 
-### Opus 4.7 — pick for
+### Pick Opus for
 
 - New architecture, new module, new domain model.
 - Multi-file refactors with API-shape changes.
@@ -65,7 +65,7 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 ### Rendering
 
 - Frame budget: 16ms (60Hz) / 8ms (120Hz). Anything that drops a frame is a perf bug.
-- Compose: hoist state, use `key()` in `LazyColumn` items, mark UI models `@Immutable`. Run the Compose compiler metrics in CI for `:feature:*` modules.
+- Compose: hoist state, and pass a stable, unique `key` to `items(key = ...)` in lazy lists ([docs](https://developer.android.com/develop/ui/compose/lists)). [Strong skipping](https://developer.android.com/develop/ui/compose/performance/stability/strongskipping) is on by default since Kotlin 2.0.20, so don't blanket-annotate UI models `@Immutable`; fix stability only where compiler metrics show needless recomposition. Run the Compose compiler metrics in CI for `:feature:*` modules.
 - Avoid nested scrollables. `LazyColumn` inside `Column { verticalScroll() }` is forbidden.
 - Bitmaps: load via Coil with explicit size; never `BitmapFactory.decodeFile` on a full-res image.
 - Animations: prefer `animate*AsState`. Avoid `Animatable` chains that allocate per frame.
@@ -84,7 +84,7 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 - LeakCanary in debug builds. Zero leaks on the merge candidate.
 - Avoid retaining `Context` in singletons (use `applicationContext` only).
 - ViewModels do not hold `View` / `Activity` / `Fragment` / `Composable` references.
-- Bitmaps and large buffers: explicit `.recycle()` or scope-bound lifecycle.
+- Bitmaps and large buffers: scope-bound lifecycle. Call [`Bitmap.recycle()`](https://developer.android.com/reference/android/graphics/Bitmap#recycle()) only on intermediate bitmaps you own; never on one shown in a `View` or managed by Coil.
 
 ### Disk & DB
 
@@ -105,6 +105,7 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 - R8 minify + resource shrinking enabled in release.
 - App Bundle, not APK, for distribution.
 - Per-density resources via splits; no full mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi shipped together.
+- Native code (yours or from dependencies) must support [16 KB page sizes](https://developer.android.com/guide/practices/page-sizes). Google Play blocks updates that don't, starting February 1, 2027.
 - Audit with `apkanalyzer` before every release. > 5% growth needs justification in the release notes.
 
 ### Benchmarks
@@ -114,3 +115,5 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 - Benchmarks run on the same device class as the user base; results compared PR-over-PR.
 
 See also: [coding-style.md](coding-style.md), [agents.md](agents.md).
+
+_Last verified against developer.android.com and kotlinlang.org: 2026-11-26 (API 36, Kotlin 2.x, AGP 9). Every Android API, Gradle setting, and Play requirement in this file was checked. The scheduled rules review re-checks them._

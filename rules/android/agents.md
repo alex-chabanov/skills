@@ -26,10 +26,8 @@ When to spawn a subagent vs. do the work in the main thread.
 | Design a feature architecture | `feature-dev:code-architect` |
 | Trace an existing feature end-to-end | `feature-dev:code-explorer` |
 | Pre-PR code review | `feature-dev:code-reviewer` or `pr-review-toolkit:code-reviewer` |
-| Independent reviewer for ureview workflow | `up:reviewer` |
 | Stuck / want a Codex second pass | `codex:codex-rescue` |
-| Open-ended research across web + repo + docs | `up:researcher` |
-| Implement one approved phase of a plan | `up:implementer` (Opus) or `up:implementer-sonnet` (trivial only) |
+| Open-ended research across web + repo + docs | `general-purpose` |
 | Multi-step task that doesn't fit above | `general-purpose` |
 
 ## Prompt rules
@@ -58,3 +56,5 @@ When to spawn a subagent vs. do the work in the main thread.
 - Never chain agents recursively without checking the result. Agent A → Agent B → Agent C invites context drift.
 
 See also: [performance.md](performance.md), [hooks.md](hooks.md).
+
+_Last reviewed: 2026-11-26. No Android API claims; nothing to verify against developer.android.com._

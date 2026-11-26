@@ -163,7 +163,7 @@ data class PagedResponse<T>(
 
 ## Navigation route
 
-Type-safe Compose Navigation. Routes are `@Serializable` data classes/objects.
+Type-safe Compose Navigation. Routes are `@Serializable` data classes/objects. [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) (stable) is the Compose-first alternative where you own the back stack as a list of keys; keep those keys serializable so the back stack survives process death. The file layout below is for Navigation 2 (`NavHost`).
 
 ```kotlin
 @Serializable
@@ -177,3 +177,5 @@ data class ProfileRoute(val userId: String)
 - App module composes the feature graphs. Features don't know about other features.
 
 See also: [coding-style.md](coding-style.md), [security.md](security.md).
+
+_Last verified against developer.android.com and kotlinlang.org: 2026-11-26 (API 36, Kotlin 2.x, AGP 9). Every Android API, Gradle setting, and Play requirement in this file was checked. The scheduled rules review re-checks them._

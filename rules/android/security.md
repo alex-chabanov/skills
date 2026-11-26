@@ -18,8 +18,8 @@ Mandatory checks before merging any Android code.
 
 ## Storage
 
-- Tokens, refresh tokens, PII → `EncryptedSharedPreferences` or Jetpack `DataStore` wrapped with Tink/Keystore. Never plain `SharedPreferences`.
-- DB containing PII → SQLCipher or Room with `SupportFactory` encryption.
+- Tokens, refresh tokens, PII → Jetpack `DataStore` encrypted with Tink, keys in Android Keystore. Never plain `SharedPreferences`. `EncryptedSharedPreferences` and all of `androidx.security:security-crypto` are [deprecated with no further releases](https://developer.android.com/privacy-and-security/cryptography); migrate existing uses at next touch.
+- DB containing PII → Room with SQLCipher via [`sqlcipher-android`](https://github.com/sqlcipher/sqlcipher-android)'s `SupportOpenHelperFactory`. The old `android-database-sqlcipher` (`SupportFactory`) is deprecated.
 - `android:allowBackup="false"` and `android:dataExtractionRules` configured unless backup is a product requirement and PII is excluded.
 - External storage writes use scoped storage APIs (Android 10+). No `MANAGE_EXTERNAL_STORAGE` without policy approval.
 
@@ -33,13 +33,13 @@ Mandatory checks before merging any Android code.
 
 - Exported components (`activity`, `service`, `receiver`, `provider`) must set `android:exported` explicitly; default to `false`.
 - Validate every `Intent` extra and `Uri` from external apps — treat as untrusted input.
-- Use `PendingIntent.FLAG_IMMUTABLE` (required on API 31+).
+- Create `PendingIntent`s with `FLAG_IMMUTABLE` unless they must be mutable. Apps targeting API 31+ [must declare mutability](https://developer.android.com/about/versions/12/behavior-changes-12) on every `PendingIntent`.
 - Deep links: verify host with App Links assetlinks.json; sanitize parameters before routing.
 - No `WebView` with `setJavaScriptEnabled(true)` over untrusted content. If JS bridges required, use `@JavascriptInterface` on API 17+ only and whitelist origins.
 
 ## Crypto
 
-- Use `androidx.security.crypto` or Tink. No raw `Cipher` with custom modes.
+- Use Tink, with keys in Android Keystore. Not `androidx.security.crypto` (deprecated). No raw `Cipher` with custom modes.
 - AES-GCM (not ECB, not CBC without HMAC). Random IVs from `SecureRandom`.
 - Keys live in Android Keystore (`AndroidKeyStore`) with `setUserAuthenticationRequired` where appropriate.
 - No MD5/SHA-1 for security purposes. SHA-256+ only.
@@ -67,3 +67,5 @@ Reject the PR if any of the following are true:
 - [ ] New `WebView` without explicit JS / file-access settings review.
 
 See also: [coding-style.md](coding-style.md), [testing.md](testing.md).
+
+_Last verified against developer.android.com and kotlinlang.org: 2026-11-26 (API 36, Kotlin 2.x, AGP 9). Every Android API, Gradle setting, and Play requirement in this file was checked. The scheduled rules review re-checks them._

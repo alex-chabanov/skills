@@ -11,7 +11,9 @@
 ## Language defaults
 
 - Kotlin for all new code. Java only when touching existing Java files or interop boundaries.
-- Target JVM 17 in `kotlinOptions { jvmTarget = "17" }`. Match Gradle JDK.
+- Target JVM 17 with `kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }`. The `kotlinOptions {}` block is [deprecated since Kotlin 2.0](https://kotlinlang.org/docs/gradle-compiler-options.html). Match Gradle JDK.
+- On AGP 9+, use its [built-in Kotlin support](https://developer.android.com/build/releases/agp-9-0-0-release-notes); don't apply `org.jetbrains.kotlin.android`.
+- `targetSdk` meets the [Google Play target API requirement](https://developer.android.com/google/play/requirements/target-sdk): API 36 for new apps and updates since August 31, 2026. Targeting API 35+ [enforces edge-to-edge](https://developer.android.com/develop/ui/views/layout/edge-to-edge), so every screen handles window insets.
 - `-Werror` enabled. No suppressions without a `// reason:` comment on the same line.
 
 ## Immutability
@@ -90,7 +92,7 @@
 - Scope functions: `let` for nullable transform, `apply` for builder-style config, `run` for block-with-result. Don't chain three of them.
 - Extension functions for cohesive helpers, not for hiding mutation.
 - Coroutines: structured concurrency only. Launch in a scope you own (`viewModelScope`, `lifecycleScope`, an injected `CoroutineScope`). No `GlobalScope`.
-- Flows over `LiveData` for new code. `StateFlow` for state, `SharedFlow(replay=0)` for events.
+- Flows over `LiveData` for new code. `StateFlow` for state; one-shot events via a `Channel` exposed with `receiveAsFlow()` (see [patterns.md](patterns.md)).
 - `suspend` functions must be main-safe or document the dispatcher they require.
 
 ## Java (when unavoidable)
@@ -98,14 +100,14 @@
 - `final` on every field, parameter, and local that isn't reassigned.
 - `@Nullable`/`@NonNull` on every parameter and return.
 - No raw types. No `Vector`, `Hashtable`, `Stack`.
-- Prefer `List.of`, `Map.of` (API 24+) over `Arrays.asList`/`new HashMap<>()`.
+- Prefer [`List.of`](https://developer.android.com/reference/java/util/List), `Map.of` (API level 30+) over `Arrays.asList`/`new HashMap<>()`.
 
 ## Compose-specific
 
 - Hoist state. Composables that own state are leaves only.
 - Pass lambdas for events: `onClick: () -> Unit`. Avoid passing whole ViewModels into composables.
 - `remember` for in-composition state, `rememberSaveable` across config change, ViewModel `StateFlow` for process death.
-- Stable types only as parameters. Wrap unstable types in `@Immutable` or `@Stable`-annotated holders.
+- Prefer stable parameter types. With strong skipping (default since Kotlin 2.0.20), unstable parameters no longer block skipping on their own. Add `@Immutable`/`@Stable` or a stability config file only when metrics show a real recomposition problem, and [never annotate a class the compiler already infers as stable](https://developer.android.com/develop/ui/compose/performance/stability/fix).
 - Side effects: `LaunchedEffect`, `DisposableEffect`, `SideEffect`. Never call suspending code directly from a composable body.
 
 ## Formatting
@@ -121,3 +123,5 @@
 - KDoc on public API of `:core` modules; internal feature code does not need KDoc on every function.
 
 See also: [testing.md](testing.md), [patterns.md](patterns.md).
+
+_Last verified against developer.android.com and kotlinlang.org: 2026-11-26 (API 36, Kotlin 2.x, AGP 9). Every Android API, Gradle setting, and Play requirement in this file was checked. The scheduled rules review re-checks them._

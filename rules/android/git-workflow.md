@@ -83,3 +83,5 @@ revert: revert "feat(profile): add avatar upload"
 - `git add .` without reviewing the staged set first — pulls in editor swap files and secrets.
 
 See also: [security.md](security.md), [testing.md](testing.md).
+
+_Last reviewed: 2026-11-26. Only tooling commands (`./gradlew`); no Android API claims._
