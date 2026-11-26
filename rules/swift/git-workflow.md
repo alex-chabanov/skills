@@ -84,4 +84,4 @@ revert: revert "feat(profile): add avatar upload"
 
 See also: [security.md](security.md), [testing.md](testing.md).
 
-_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._
+_Last reviewed: 2026-11-26. Only tooling commands (`swift`, `xcodebuild`); no Apple API claims._

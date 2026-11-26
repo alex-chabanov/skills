@@ -121,4 +121,4 @@ Use the `hookify` plugin (`/hookify` or `/hookify <natural-language-rule>`). For
 
 See also: [agents.md](agents.md), [git-workflow.md](git-workflow.md), [security.md](security.md).
 
-_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._
+_Last verified: 2026-11-26. Claude Code hook claims checked against code.claude.com/docs/en/hooks; no Apple API claims._

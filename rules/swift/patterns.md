@@ -189,4 +189,4 @@ NavigationStack(path: $path) {
 
 See also: [coding-style.md](coding-style.md), [security.md](security.md).
 
-_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Every Apple API, build setting, and Info.plist key in this file was checked. The scheduled rules review re-checks them._

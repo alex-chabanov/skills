@@ -47,7 +47,7 @@ Mandatory checks before merging any Apple-platform code.
 
 ## Logging
 
-- Strip PII, tokens, and request bodies from release logs. Use `os.Logger` with `privacy: .private` (the default) for any interpolated value that could be sensitive; mark only non-sensitive values `.public`.
+- Strip PII, tokens, and request bodies from release logs. Use `os.Logger` and mark every interpolated value that could be sensitive `privacy: .private` explicitly: [by default](https://developer.apple.com/documentation/os/generating-log-messages-from-your-code) only dynamic strings and objects are redacted, while integers, floats, and Booleans are logged in clear. Mark only non-sensitive values `.public`.
 - Crash reporters must not capture auth headers or authenticated response bodies. Scrub before send.
 
 ## Dependencies
@@ -75,4 +75,4 @@ Reject the PR if any of the following are true:
 
 See also: [coding-style.md](coding-style.md), [testing.md](testing.md).
 
-_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Every Apple API, build setting, and Info.plist key in this file was checked. The scheduled rules review re-checks them._

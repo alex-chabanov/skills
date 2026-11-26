@@ -60,7 +60,7 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 - Cold-start budget: < 2s P50, < 4s P90 on a mid-tier device.
 - Defer non-essential SDK init off the launch path; lazy-init analytics and crash reporters.
 - No synchronous disk I/O or network on the main thread during `App.init` / first view's `.task`.
-- Measure launch with `MetricKit` (`MXAppLaunchMetric`) and Instruments' App Launch template; track regressions release-over-release.
+- Measure launch with MetricKit and Instruments' App Launch template; track regressions release-over-release. On iOS 27+ use [`MetricManager`](https://developer.apple.com/documentation/metrickit/metricmanager) and read `TimeToFirstDrawMetric` / `ExtendedLaunchMetric`. The `MX*` API (`MXMetricManager`, `MXAppLaunchMetric`) is deprecated as of iOS 27.3; keep it only behind `#available` for older deployment targets.
 
 ### Rendering
 
@@ -110,9 +110,9 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 ### Benchmarks
 
 - `XCTMetric` performance tests (`measure {}`) for hot algorithms (JSON parse, list diff, expensive transforms).
-- MetricKit in production for real-world launch, hang, and scroll-hitch data.
+- MetricKit in production for real-world launch, hang, and scroll-hitch data (`HangTimeMetric`, `HitchTimeMetric` on iOS 27+).
 - Benchmarks run on the same device class as the user base; results compared PR-over-PR.
 
 See also: [coding-style.md](coding-style.md), [agents.md](agents.md).
 
-_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Every Apple API, build setting, and Info.plist key in this file was checked. The scheduled rules review re-checks them._

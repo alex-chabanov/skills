@@ -57,4 +57,4 @@ When to spawn a subagent vs. do the work in the main thread.
 
 See also: [performance.md](performance.md), [hooks.md](hooks.md).
 
-_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._
+_Last reviewed: 2026-11-26. No Apple API claims; nothing to verify against developer.apple.com._

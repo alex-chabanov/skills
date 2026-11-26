@@ -95,7 +95,7 @@
 - Never spawn an unstructured `Task {}` whose lifetime outlives the owning view/view model without storing and cancelling it. No detached tasks for routine work.
 - `@Observable` (Observation framework) for state. `ObservableObject`/`@Published` only in legacy code. To observe `@Observable` changes outside SwiftUI, use the [`Observations`](https://developer.apple.com/documentation/observation/observations) async sequence (iOS 26+), not Combine. `AsyncStream` for event streams; Combine only where an existing API forces it.
 - `async` functions must be main-safe or document the executor/actor they require.
-- New targets use the [Swift 6 language mode](https://developer.apple.com/documentation/swift/adoptingswift6) with complete concurrency checking. App/UI targets keep Xcode 26's defaults: Default Actor Isolation `MainActor` ([SE-0466](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0466-control-default-actor-isolation.md)) and Approachable Concurrency on. `Core*` library packages keep `nonisolated` default isolation.
+- New targets use the [Swift 6 language mode](https://developer.apple.com/documentation/swift/adoptingswift6) with complete concurrency checking. App/UI targets set [`SWIFT_DEFAULT_ACTOR_ISOLATION`](https://developer.apple.com/documentation/xcode/build-settings-reference) `= MainActor` ([SE-0466](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0466-control-default-actor-isolation.md)) and `SWIFT_APPROACHABLE_CONCURRENCY = YES`. `Core*` library packages keep `nonisolated` default isolation.
 
 ## Objective-C (when unavoidable)
 
@@ -136,4 +136,4 @@ On an API detail, the skill wins over this file. On architecture, naming, and pr
 
 See also: [testing.md](testing.md), [patterns.md](patterns.md).
 
-_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Every Apple API, build setting, and Info.plist key in this file was checked. The scheduled rules review re-checks them._
