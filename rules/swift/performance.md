@@ -74,7 +74,7 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 ### Concurrency
 
 - Main actor is for UI. Period. UI state types are `@MainActor`.
-- `Task.detached` / background executors for CPU-bound work; `await` I/O on `URLSession`/file APIs which already run off-main.
+- Mark CPU-bound async functions `@concurrent` ([SE-0461](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0461-async-function-isolation.md), Swift 6.2) so they run on the global executor instead of the caller's actor. Reach for `Task.detached` only when you must also drop priority and task-locals. `await` I/O on `URLSession`/file APIs, which already run off-main.
 - Isolate shared mutable state in an `actor`; don't reach for locks unless profiling demands it.
 - Inject a `Clock` so tests can substitute time; never `Task.sleep` real time in production hot paths.
 - No blocking the main thread on a semaphore to "await" async work. Restructure with `async`/`await`.
@@ -82,6 +82,7 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 ### Memory
 
 - Profile with Instruments (Allocations, Leaks) before every release.
+- Command-line profiling and reading `.trace` files: `xcode-integration:xctrace` (Apple-maintained).
 - Break retain cycles: `[weak self]` in escaping closures and long-lived `Task`s that capture `self`.
 - Don't retain views/controllers in long-lived objects. View models never hold `UIView`/`UIViewController`/SwiftUI view references.
 - Large buffers and image data: scope their lifetime; release promptly.
@@ -96,14 +97,14 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 ### Network
 
 - `URLSession` is shared/reused (one configured session), not created per request — reuse the connection pool.
-- HTTP/2 by default; enable response compression server-side.
+- Let `URLSession` negotiate HTTP/2 or HTTP/3 (QUIC); never force HTTP/1.1. Enable response compression server-side.
 - Honor `Cache-Control`; use `URLCache` for cacheable GETs. Stale-while-revalidate for non-critical reads.
 - Cancel in-flight requests when the owning view disappears (structured `Task` cancellation does this for free).
 
 ### App / bundle size
 
 - Enable optimization and dead-code stripping for release. Strip symbols from the shipped binary.
-- Use On-Demand Resources / asset slicing; ship per-scale assets, not all scales to every device.
+- Use asset slicing; ship per-scale assets, not all scales to every device. Download large optional content with [Background Assets](https://developer.apple.com/documentation/backgroundassets) (On-Demand Resources is deprecated as of iOS 27).
 - Audit the app thinning report and `Asset.car` size before each release. > 5% growth needs justification in the release notes.
 
 ### Benchmarks
@@ -113,3 +114,5 @@ When unsure: Opus. The cost difference matters less than the cost of a wrong des
 - Benchmarks run on the same device class as the user base; results compared PR-over-PR.
 
 See also: [coding-style.md](coding-style.md), [agents.md](agents.md).
+
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._

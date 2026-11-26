@@ -83,3 +83,5 @@ revert: revert "feat(profile): add avatar upload"
 - Hand-editing `.pbxproj` to resolve a merge conflict without verifying the project still opens and builds.
 
 See also: [security.md](security.md), [testing.md](testing.md).
+
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._

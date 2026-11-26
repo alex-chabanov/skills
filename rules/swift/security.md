@@ -12,7 +12,7 @@ Mandatory checks before merging any Apple-platform code.
 ## Network
 
 - App Transport Security on: no global `NSAllowsArbitraryLoads`. Cleartext only per-domain via `NSExceptionDomains` for documented dev hosts.
-- HTTPS only for production endpoints. Pin certificates/public keys for high-value APIs via `URLSession`'s `urlSession(_:didReceive:)` challenge handler or a vetted pinning library.
+- HTTPS only for production endpoints. Pin certificates for high-value APIs declaratively with [`NSPinnedDomains`](https://developer.apple.com/documentation/bundleresources/information-property-list/nsapptransportsecurity/nspinneddomains) (`NSPinnedCAIdentities` / `NSPinnedLeafIdentities`) under `NSAppTransportSecurity` in `Info.plist`. Fall back to `URLSession`'s `urlSession(_:didReceive:)` challenge handler or a vetted pinning library only when ATS can't express the pinning policy.
 - Disable URL cache for responses carrying auth tokens (`.reloadIgnoringLocalCacheData` / no-store).
 - Never disable TLS validation. No "trust all" `URLAuthenticationChallenge` handler that calls `.useCredential` with an unverified server trust outside a `#if DEBUG` simulator build.
 
@@ -27,6 +27,7 @@ Mandatory checks before merging any Apple-platform code.
 
 - Declare the minimum entitlements and `Info.plist` usage strings. Audit `Info.plist` on every PR that adds a `NS*UsageDescription`.
 - Request runtime authorization just-in-time, with rationale UI. Handle the denied / restricted / limited states explicitly.
+- Ship a [privacy manifest](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files) (`PrivacyInfo.xcprivacy`) in the app and in every first-party framework or package that calls a required-reason API (`UserDefaults`, file timestamps, system boot time, disk space, active keyboards). Declare an [approved reason](https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api) for each; App Store Connect rejects uploads that omit them. Verify third-party SDKs ship their own manifests.
 - Never request Contacts, Photos full-library, background location, microphone, or local-network access without a documented product justification — App Review will ask, and so should the reviewer.
 
 ## Components & IPC
@@ -42,6 +43,7 @@ Mandatory checks before merging any Apple-platform code.
 - AES-GCM (`AES.GCM`), not ECB, not unauthenticated CBC. Nonces from the system CSPRNG (CryptoKit generates them).
 - Keys live in the Secure Enclave (`SecureEnclave.P256`) or Keychain with access control; gate with `LAContext` / `.userPresence` where appropriate.
 - No MD5/SHA-1 for security purposes. `SHA256` or stronger only.
+- For new key exchange or signatures protecting long-lived data, prefer [CryptoKit](https://developer.apple.com/documentation/cryptokit)'s post-quantum APIs (`XWingMLKEM768X25519` hybrid KEM, `MLKEM768`, `MLDSA65`) where the deployment target allows.
 
 ## Logging
 
@@ -54,6 +56,10 @@ Mandatory checks before merging any Apple-platform code.
 - Review new package adds for maintenance status and transitive footprint. Audit periodically.
 - Verify the Xcode / toolchain version in CI matches the pinned one.
 
+## Build hardening
+
+- Enable the [Enhanced Security](https://developer.apple.com/documentation/xcode/enabling-enhanced-security-for-your-app) capability (Signing & Capabilities) on app targets unless a documented incompatibility blocks it. The `audit-xcode-security-settings` skill walks the related compiler and analyzer settings.
+
 ## Pre-merge security gate
 
 Reject the PR if any of the following are true:
@@ -65,5 +71,8 @@ Reject the PR if any of the following are true:
 - [ ] Sensitive data written to `UserDefaults` or an unencrypted store.
 - [ ] Crypto primitive weaker than AES-GCM-256 or SHA-256 introduced.
 - [ ] New `WKWebView` with a JS bridge over untrusted content without origin review.
+- [ ] Required-reason API added, or collected-data / tracking behavior changed, without a matching `PrivacyInfo.xcprivacy` update.
 
 See also: [coding-style.md](coding-style.md), [testing.md](testing.md).
+
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._

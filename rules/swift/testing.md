@@ -20,14 +20,17 @@
 |---|---|---|---|
 | Unit (pure Swift) | Swift Testing (or XCTest) | Simulator/macOS | < 50ms each |
 | View model | Swift Testing + async expectations + fakes | Simulator/macOS | < 100ms each |
-| Repository / data | XCTest + `URLProtocol` stub + in-memory store | Simulator/macOS | < 200ms each |
-| SwiftUI view | ViewInspector / snapshot (Paparazzi-equivalent) | Simulator | < 1s each |
+| Repository / data | Swift Testing + `URLProtocol` stub + in-memory store | Simulator/macOS | < 200ms each |
+| SwiftUI view | ViewInspector / snapshot (e.g. swift-snapshot-testing) | Simulator | < 1s each |
 | End-to-end | XCUITest | Simulator/device | sparingly |
 
 ## Framework choices
 
 - Swift Testing (`import Testing`, `@Test`, `#expect`) for new test targets. XCTest stays for existing targets until touched.
 - One assertion style per repo. With Swift Testing use `#expect`/`#require`; with XCTest use `XCTAssert*` — don't mix a third-party matcher library in.
+- Swift Testing (Swift 6.2 / Xcode 26) also covers what used to need XCTest or a helper process: [exit tests](https://developer.apple.com/documentation/testing/exit-testing) (`#expect(processExitsWith:)`, macOS/Linux/Windows hosts only, not iOS) for `precondition`/`fatalError` paths, and [`Attachment.record(...)`](https://developer.apple.com/documentation/testing/attachments) to attach logs, JSON, or images to a test result.
+- Migrating an XCTest target: follow `xcode-integration:modernize-tests` (Apple-maintained).
+- XCTest stays required for XCUITest and `measure(metrics:)` performance tests.
 - Prefer protocol-backed fakes over mocking frameworks. If a mocking lib is already in use, keep it confined to legacy targets.
 - For async `AsyncSequence`/stream assertions, collect with a bounded helper (`for await … { } / break`) — don't roll an ad-hoc sleep-and-poll.
 
@@ -66,3 +69,5 @@
 - A single green-light command runs lint + format-check + unit + UI: `swift test` for packages, `xcodebuild test` for the app scheme.
 
 See also: [coding-style.md](coding-style.md), [git-workflow.md](git-workflow.md).
+
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._

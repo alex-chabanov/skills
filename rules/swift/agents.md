@@ -56,3 +56,5 @@ When to spawn a subagent vs. do the work in the main thread.
 - Never chain agents recursively without checking the result. Agent A → Agent B → Agent C invites context drift.
 
 See also: [performance.md](performance.md), [hooks.md](hooks.md).
+
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._

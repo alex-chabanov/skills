@@ -21,6 +21,7 @@ enum DataError: Error, Equatable {
         case payloadTooLarge
         case serverError
         case serialization
+        case cancelled
         case unknown
     }
 
@@ -73,9 +74,10 @@ func safeCall<T: Decodable>(
     do {
         (data, response) = try await execute()
     } catch is CancellationError {
-        return .failure(.unknown)            // let structured cancellation propagate where it matters
+        return .failure(.cancelled)
     } catch let error as URLError {
         switch error.code {
+        case .cancelled:                return .failure(.cancelled)
         case .timedOut:                 return .failure(.requestTimeout)
         case .notConnectedToInternet,
              .networkConnectionLost:    return .failure(.noInternet)
@@ -88,7 +90,7 @@ func safeCall<T: Decodable>(
 }
 ```
 
-- Catch `CancellationError` explicitly so cooperative cancellation isn't masked as a network failure.
+- Map both `CancellationError` and `URLError(.cancelled)` (what `URLSession` throws when the owning `Task` is cancelled) to `.cancelled`, so cancellation is never reported as a network failure. Callers drop `.cancelled` silently instead of showing an error.
 - One `safeCall` shared across the data layer. Don't re-implement per repository.
 - Wrap only the throwing call (`execute()`), not the whole function body. Decoding, logging, and result construction stay outside the `do`.
 
@@ -186,3 +188,5 @@ NavigationStack(path: $path) {
 - One route enum per feature; the app module composes feature routes. Features don't know about other features' internals — cross-feature navigation goes through a coordinator closure.
 
 See also: [coding-style.md](coding-style.md), [security.md](security.md).
+
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._

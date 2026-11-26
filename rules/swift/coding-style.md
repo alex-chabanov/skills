@@ -41,7 +41,7 @@
 ## Naming
 
 - Modules / package targets: `UpperCamelCase` (`FeatureProfile`, `CoreNetworking`).
-- Types, protocols: `UpperCamelCase`. Views: `UpperCamelCase` ending in `View` for screens (`ProfileScreen`, `ProfileView`).
+- Types, protocols: `UpperCamelCase`. Views: `UpperCamelCase`; full-screen destinations end in `Screen` (`ProfileScreen`), reusable components end in `View` (`AvatarView`).
 - Functions, vars, cases: `lowerCamelCase`. Constants: `lowerCamelCase` (Swift convention — no `UPPER_SNAKE`), grouped in a `enum` namespace or `static let`.
 - Booleans read as questions: `isLoading`, `hasError`, `canSubmit`. Not `loading`, `error`, `submit`.
 - Action methods prefixed `handle`: `handleTap`, `handleSubmit`, `handleRefresh`. Closure parameters on views prefixed `on`: `onTap`, `onSubmit` (the param shape; the implementation method uses `handle`).
@@ -93,8 +93,9 @@
 - Extensions for cohesive helpers and protocol conformances, one concern per extension. Not for hiding mutation.
 - Concurrency: structured concurrency only. `async`/`await`, `async let`, `TaskGroup`. Isolate shared mutable state in an `actor`. UI state types are `@MainActor`.
 - Never spawn an unstructured `Task {}` whose lifetime outlives the owning view/view model without storing and cancelling it. No detached tasks for routine work.
-- `AsyncStream` / Combine `Publisher` for streams; `@Observable` (Observation framework) or `@Published` for state. Prefer Observation over `ObservableObject` for new code.
+- `@Observable` (Observation framework) for state. `ObservableObject`/`@Published` only in legacy code. To observe `@Observable` changes outside SwiftUI, use the [`Observations`](https://developer.apple.com/documentation/observation/observations) async sequence (iOS 26+), not Combine. `AsyncStream` for event streams; Combine only where an existing API forces it.
 - `async` functions must be main-safe or document the executor/actor they require.
+- New targets use the [Swift 6 language mode](https://developer.apple.com/documentation/swift/adoptingswift6) with complete concurrency checking. App/UI targets keep Xcode 26's defaults: Default Actor Isolation `MainActor` ([SE-0466](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0466-control-default-actor-isolation.md)) and Approachable Concurrency on. `Core*` library packages keep `nonisolated` default isolation.
 
 ## Objective-C (when unavoidable)
 
@@ -108,11 +109,11 @@
 - Pass closures for events: `onTap: () -> Void`. Don't pass a whole view model into a deep child — pass the slice it needs.
 - `@State` for view-local state, `@SceneStorage`/`@AppStorage` across launches where appropriate, view-model observable state for anything surviving navigation.
 - Keep view params `Equatable`/value types so SwiftUI can skip re-evaluating `body`. Wrap reference types behind an `Equatable` wrapper or `@Observable`.
-- Side effects belong in `.task {}`, `.onAppear`, `.onChange(of:)`, or `.refreshable` — never start async work inline in `body`.
+- Side effects belong in `.task {}`, `.onAppear`, `.onChange(of:initial:_:)` (the zero- or two-parameter closure form; single-parameter [`onChange(of:perform:)`](https://developer.apple.com/documentation/swiftui/view/onchange(of:perform:)) is deprecated), or `.refreshable`. Never start async work inline in `body`.
 
 ## Formatting
 
-- SwiftFormat + SwiftLint configured and run in CI. CI fails on violations.
+- A formatter (SwiftFormat, or [`swift format`](https://github.com/swiftlang/swift-format) from the Xcode 16+ toolchain) plus SwiftLint, configured and run in CI. CI fails on violations.
 - 4-space indent. Trailing commas on multi-line literals. One type per file unless tightly cohesive (an `enum` hierarchy + its small helpers).
 
 ## Comments
@@ -121,4 +122,18 @@
 - Write a comment only for **why** that isn't obvious: a workaround for a framework bug, a non-obvious invariant, a perf trade-off. Link to issue/PR/radar/docs when relevant.
 - DocC (`///`) on the public API of `Core*` packages; internal feature code does not need doc comments on every function.
 
+## Apple-maintained references
+
+Apple keeps these skills (Xcode integration plugin) current with each SDK. Consult them for API-level detail instead of growing this file:
+
+- SwiftUI API choice, Observation, `@Entry`, `ForEach` identity, soft-deprecated APIs: `xcode-integration:swiftui-specialist`.
+- New SwiftUI APIs in the current SDK: `xcode-integration:swiftui-whats-new-<year>` (the suffix tracks the SDK year, e.g. `-27`).
+- App Intents: `xcode-integration:app-intents-specialist`, `xcode-integration:app-intents-whats-new-<year>`.
+- Resizable windows and multitasking: `xcode-integration:app-resizability`.
+- Accessibility audits: `xcode-integration:accessibility-voiceover-specialist`, `-dynamic-type-specialist`, `-sufficient-contrast-specialist`.
+
+On an API detail, the skill wins over this file. On architecture, naming, and project conventions, this file wins.
+
 See also: [testing.md](testing.md), [patterns.md](patterns.md).
+
+_Last verified against developer.apple.com: 2026-11-26 (iOS 27 SDK, Swift 6.2). Linked claims are re-checked by the scheduled rules review._
