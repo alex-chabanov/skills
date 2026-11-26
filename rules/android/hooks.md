@@ -73,8 +73,8 @@ Recommended for Android repos:
 
 ### Hook contract
 
-- Hooks run as shell scripts. Exit 0 = allow. Non-zero = block (PreToolUse) or report (PostToolUse).
-- stdout is echoed into the conversation as a system reminder.
+- Hooks run as shell commands and receive the event as JSON on stdin (`tool_name`, `tool_input.file_path`, ...). Exit 0 = success. Exit 2 = block (PreToolUse) or feed stderr back to Claude (PostToolUse). Other non-zero codes are non-blocking: the action proceeds and an error notice appears in the transcript.
+- On exit 2, stderr reaches Claude. Plain stdout on exit 0 reaches Claude's context only for prompt/session events (`UserPromptSubmit`, `SessionStart`, and a few others); tool events such as `PostToolUse` use JSON output (`hookSpecificOutput.additionalContext`).
 - Keep hook output **terse**: one line is enough for "allowed", a focused diagnostic for "blocked". Long output bloats context.
 - Hooks must be idempotent and side-effect-free unless that's their declared job (formatting, logging).
 - Hooks must finish < 2s for `PreToolUse`, < 10s for `PostToolUse`. Longer = degraded UX.
@@ -91,13 +91,19 @@ Use the `hookify` plugin (`/hookify` or `/hookify <natural-language-rule>`). For
        "PostToolUse": [
          {
            "matcher": "Edit|Write",
-           "filter": { "filePattern": "**/*.kt" },
-           "command": ".claude/hooks/ktlint-format.sh \"$CLAUDE_FILE_PATH\""
+           "hooks": [
+             {
+               "type": "command",
+               "if": "Edit(**/*.kt)",
+               "command": ".claude/hooks/ktlint-format.sh"
+             }
+           ]
          }
        ]
      }
    }
    ```
+   `matcher` filters by tool name; the handler's `if` field takes permission-rule syntax to filter by path (add a second handler with `Write(**/*.kt)` for new files). There is no file-path env var: the script reads it with `jq -r '.tool_input.file_path'` from stdin.
 3. Test with a real edit. Roll back if it adds > 2s latency.
 
 ### Forbidden hook behaviors
@@ -111,6 +117,6 @@ Use the `hookify` plugin (`/hookify` or `/hookify <natural-language-rule>`). For
 
 - `/hookify:list` shows configured rules.
 - `/hookify:configure` toggles them interactively.
-- Disable a hook by commenting it out in `.claude/settings.json`; don't delete unless you're sure.
+- Disable a hook by moving its entry out of `.claude/settings.json` (JSON has no comments) and keeping a copy; don't discard it unless you're sure.
 
 See also: [agents.md](agents.md), [git-workflow.md](git-workflow.md), [security.md](security.md).
